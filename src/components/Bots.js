@@ -12,13 +12,13 @@ import { Link } from "react-router-dom";
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import moment from "moment";
+
 import Swal from 'sweetalert2';
 import { useNavigate } from "react-router-dom";
 
 // Redux 
 import { useSelector, useDispatch } from 'react-redux';
-import { getDeliveriesAction, changeDeliveryStateAction, deleteDeliveryAction, getEditDeliveryAction } from '../actions/deliveryActions';
+import { getBotsAction, changeBotStatusAction, deleteBotAction, getEditBotAction } from '../actions/botsActions';
 
 const useStyles = makeStyles({
     root: {
@@ -44,7 +44,7 @@ const useStyles = makeStyles({
         }
     },
 
-    pendingState: {
+    availableStatus: {
         color: "#FFF",
         backgroundColor: "var(--bs-green)",
         marginTop: "0.25rem",
@@ -58,7 +58,7 @@ const useStyles = makeStyles({
         }
     },
 
-    assignedState: {
+    busyStatus: {
         color: "#FFF",
         backgroundColor: "var(--bs-orange)",
         marginTop: "0.25rem",
@@ -72,21 +72,7 @@ const useStyles = makeStyles({
         }
     },
 
-    inTransitState: {
-        color: "#FFF",
-        backgroundColor: "var(--bs-pink)",
-        marginTop: "0.25rem",
-        marginBottom: "0.25rem",
-        width: "100%",
-        textTransform: "none",
-        borderRadius: "15px",
-
-        "&:hover": {
-            backgroundColor: "#a00057"
-        }
-    },
-
-    deliveredState: {
+    reservedStatus: {
         color: "#FFF",
         backgroundColor: "var(--bs-red)",
         marginTop: "0.25rem",
@@ -101,23 +87,23 @@ const useStyles = makeStyles({
     }
 });
 
-const Deliveries = () => {
+const Bots = () => {
 
     const dispatch = useDispatch();
     const classes = useStyles();
     const navigate = useNavigate();
 
     // get the state
-    const deliveries = useSelector(state => state.deliveries.deliveries);
-    const error = useSelector(state => state.deliveries.error);
-    const loading = useSelector(state => state.deliveries.loading);
+    const bots = useSelector(state => state.bots.bots);
+    const error = useSelector(state => state.bots.error);
+    const loading = useSelector(state => state.bots.loading);
 
     useEffect(() => {
 
         // query the api
-        const loadDeliveries = () => dispatch(getDeliveriesAction());
+        const loadBots = () => dispatch(getBotsAction());
 
-        loadDeliveries();
+        loadBots();
 
         // eslint-disable-next-line
     }, []);
@@ -126,95 +112,71 @@ const Deliveries = () => {
         {
             id: 'options',
             label: 'Options',
-            minWidth: 120,
-            align: "center"
+            minWidth: 120
         },
         {
-            id: '_state',
-            label: 'State',
-            minWidth: 140,
-            align: "center"
+            id: '_status',
+            label: 'Status',
+            minWidth: 140
         },
         {
-            id: 'creation_date',
-            label: 'Creation Date',
-            minWidth: 180,
-            align: "center"
-        },
-        {
-            id: 'pickup_lat',
-            label: 'Pickup Latitude',
-            minWidth: 150,
-            align: "center"
-        },
-        {
-            id: 'pickup_lon',
-            label: 'Pickup Longitude',
-            minWidth: 150,
-            align: "center"
+            id: 'code',
+            label: 'Code',
+            minWidth: 150
         },
         {
             id: 'dropoff_lat',
             label: 'Dropoff Latitude',
-            minWidth: 150,
-            align: "center"
+            minWidth: 150
         },
         {
             id: 'dropoff_lon',
             label: 'Dropoff Longitude',
-            minWidth: 150,
-            align: "center"
+            minWidth: 150
         },
         {
             id: 'zone_id',
             label: 'Zone ID',
-            minWidth: 250,
-            align: 'center'
+            minWidth: 250
         },
     ];
 
-    const rows = deliveries.map(delivery => {
-        let mState = "";
+    const rows = bots.map(bot => {
+        let mStatus = "";
 
-        if (delivery.state === "pending") {
-            mState = "Pending"
-        } else if (delivery.state === "assigned") {
-            mState = "Assigned"
-        } else if (delivery.state === "in_transit") {
-            mState = "In Transit"
-        } else if (delivery.state === "delivered") {
-            mState = "Delivered"
+        if (bot.status === "available") {
+            mStatus = "Available"
+        } else if (bot.status === "busy") {
+            mStatus = "Busy"
+        } else if (bot.status === "reserved") {
+            mStatus = "Reserved"
         } else {
-            mState = "Unknow"
+            mStatus = "Unknow"
         }
 
         return {
-            state: mState,
-            creation_date: moment(delivery.creation_date).format("MM/DD/YYYY hh:mma"),
-            pickup_lat: delivery.pickup.pickup_lat,
-            pickup_lon: delivery.pickup.pickup_lon,
-            dropoff_lat: delivery.dropoff.dropoff_lat,
-            dropoff_lon: delivery.dropoff.dropoff_lon,
-            zone_id: delivery.zone_id,
-            id: delivery.id,
+            code: bot.code,
+            status: mStatus,
+            dropoff_lat: bot.location.dropoff_lat,
+            dropoff_lon: bot.location.dropoff_lon,
+            zone_id: bot.zone_id,
+            id: bot.id,
         }
     })
 
-    const getDeliveryStateClass = (delivery) => {
+    const getBotStatusClass = (bot) => {
 
-        let stateClass;
+        let statusClass;
 
-        if (delivery.state === "Pending") {
-            stateClass = classes.pendingState;
-        } else if (delivery.state === "Assigned") {
-            stateClass = classes.assignedState;
-        } else if (delivery.state === "In Transit") {
-            stateClass = classes.inTransitState;
-        } else if (delivery.state === "Delivered") {
-            stateClass = classes.deliveredState;
+        if (bot.status === "Available") {
+            statusClass = classes.availableStatus;
+        } else if (bot.status === "Busy") {
+            statusClass = classes.busyStatus;
+        } else if (bot.status === "Reserved") {
+            statusClass = classes.reservedStatus;
         }
 
-        return stateClass;
+        return statusClass;
     }
 
     const [page, setPage] = useState(0);
@@ -229,33 +191,30 @@ const Deliveries = () => {
         setPage(0);
     };
 
-    const changeDeliveryStatus = row => {
-        const currentState = row.state;
-        let nextState = "";
-        let nextStateStr = "";
+    const changeBotStatus = row => {
+        const currentStatus = row.status;
+        let nextStatus = "";
+        let nextStatusStr = "";
 
-        if (currentState === "Pending") {
-            nextState = "assigned";
-            nextStateStr = "Assigned";
-        } else if (currentState === "Assigned") {
-            nextState = "in_transit";
-            nextStateStr = "In Transit";
-        } else if (currentState === "In Transit") {
-            nextState = "delivered";
-            nextStateStr = "Delivered";
-        } else if (currentState === "Delivered") {
-            nextState = "pending";
-            nextStateStr = "Pending";
+        if (currentStatus === "Available") {
+            nextStatus = "busy";
+            nextStatusStr = "Busy";
+        } else if (currentStatus === "Busy") {
+            nextStatus = "reserved";
+            nextStatusStr = "Reserved";
+        } else if (currentStatus === "Reserved") {
+            nextStatus = "available";
+            nextStatusStr = "Available";
         } else {
-            nextState = "unknown";
-            nextStateStr = "Unknown";
+            nextStatus = "unknown";
+            nextStatusStr = "Unknown";
         }
 
-        dispatch(changeDeliveryStateAction({ id: row.id, state: nextState }, currentState, nextStateStr))
+        dispatch(changeBotStatusAction({ id: row.id, status: nextStatus }, currentStatus, nextStatusStr))
     }
 
-    // confirm if user want  to delete teh delivery
-    const confirmDeleteDelivery = id => {
+    // confirm if user want  to delete teh bot
+    const confirmDeleteBot = id => {
 
         Swal.fire({
             title: '¿Are you sure?',
@@ -266,24 +225,24 @@ const Deliveries = () => {
             cancelButtonColor: 'var(--bs-red)',
         }).then(result => {
             if (result.value) {
-                dispatch(deleteDeliveryAction(id));
+                dispatch(deleteBotAction(id));
             }
         })
     }
 
     // function that redirect in controlled way
-    const goToDeliveryEdit = id => {
-        //get the delivery by this id
-        const delivery = deliveries.filter(delivery => delivery.id === id)[0];
+    const goToBotEdit = id => {
+        //get the bot by this id
+        const bot = bots.filter(bot => bot.id === id)[0];
 
-        dispatch(getEditDeliveryAction(delivery));
+        dispatch(getEditBotAction(bot));
         // redirect
-        return navigate(`/deliveries/edit/${delivery.id}`);
+        return navigate(`/bots/edit/${bot.id}`);
     }
 
     return (
         <>
-            <h2 className="text-center mt-4" style={{ color: "#3f51b5", fontWeight: "700" }}>Deliveries List</h2>
+            <h2 className="text-center mt-4" style={{ color: "#3f51b5", fontWeight: "700" }}>Bots List</h2>
 
             {error ? <p className="font-weight-bold alert alert-danger text-center mt-4">There was an error</p> : null}
 
@@ -309,12 +268,12 @@ const Deliveries = () => {
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((row) => {
                                     return (
-                                        <TableRow hover role="checkbox" tabIndex={-1} key={row.id ? row.id : row.creation_date + row.pickup_lat + row.pickup_lon}>
+                                        <TableRow hover role="checkbox" tabIndex={-1} key={row.id ? row.id : row.code}>
                                             <TableCell className={classes.root}>
-                                                <IconButton onClick={() => goToDeliveryEdit(row.id)}>
+                                                <IconButton onClick={() => goToBotEdit(row.id)}>
                                                     <EditIcon color="primary" />
                                                 </IconButton>
-                                                <IconButton onClick={() => confirmDeleteDelivery(row.id)}>
+                                                <IconButton onClick={() => confirmDeleteBot(row.id)}>
                                                     <DeleteIcon style={{ color: "var(--bs-red)" }} />
                                                 </IconButton>
                                             </TableCell>
@@ -322,11 +281,11 @@ const Deliveries = () => {
                                             <TableCell>
                                                 <Button
                                                     variant="contained"
-                                                    className={getDeliveryStateClass(row)}
+                                                    className={getBotStatusClass(row)}
                                                     size="small"
-                                                    onClick={() => changeDeliveryStatus(row)}
+                                                    onClick={() => changeBotStatus(row)}
                                                 >
-                                                    {row.state}
+                                                    {row.status}
                                                 </Button>
                                             </TableCell>
 
@@ -362,14 +321,14 @@ const Deliveries = () => {
             <div className="d-flex justify-content-end w-100">
                 <Button
                     component={Link}
-                    to="/deliveries/new"
+                    to="/bots/new"
                     variant="outlined"
                     className="newBtn greyShadow my-4"
                     startIcon={<AddIcon />}
                     size="large"
                     color="primary"
                 >
-                    New Delivery
+                    New Bot
                 </Button>
             </div>
 
@@ -377,4 +336,4 @@ const Deliveries = () => {
     );
 }
 
-export default Deliveries;
+export default Bots;

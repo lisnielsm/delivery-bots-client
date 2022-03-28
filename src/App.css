@@ -1,3 +1,7 @@
+body {
+	height: 100vh;
+}
+
 .img-back {
 	height: 200px;
 	width: 100%;
@@ -24,7 +28,7 @@
 }
 
 .menuBtn:hover,
-.newDeliveryBtn:hover {
+.newBtn:hover {
 	background-color: #4a59d9 !important;
 	color: #fff !important;
 }
@@ -36,7 +40,7 @@
 	margin-right: 0.5rem;
 }
 
-.newDeliveryBtn {
+.newBtn {
 	outline: none !important;
 	cursor: pointer;
 	text-decoration: none !important;
@@ -44,6 +48,10 @@
 }
 
 .footer {
+	/* position: fixed;
+	left: 0;
+	bottom: 0;
+	width: 100%; */
 	color: #3f51b5;
 	padding: 0.5rem;
 	font-weight: bold;

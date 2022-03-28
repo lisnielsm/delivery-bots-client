@@ -155,7 +155,7 @@ export function editBotAction(bot) {
         dispatch(editBot());
 
         try {
-            await clientAxios.put(`/bots/${bot.id}`, bot);
+            await clientAxios.patch(`/bots/${bot.id}`, bot);
             dispatch(editBotSuccess(bot));
             
         } catch (error) {
@@ -178,3 +178,32 @@ const editBotFail = () => ({
     type: EDIT_BOT_FAIL,
     payload: true
 })
+
+export function changeBotStatusAction(bot, currentStatus, nextStatus) {
+    return async (dispatch) => {
+        Swal.fire({
+            title: 'Are you sure?',
+            html: `Are you going to change this bot from status <b>${currentStatus}</b> to status <b>${nextStatus}</b>?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3f51b5',
+            cancelButtonColor: 'var(--bs-red)',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                async function changeBotStatus(dispatch) {
+                    dispatch(editBot());
+
+                    try {
+                        const response = await clientAxios.patch(`/bots/${bot.id}`, bot);
+                        dispatch(editBotSuccess(response.data));
+                    } catch (error) {
+                        console.log(error);
+                        dispatch(editBotFail());
+                    }
+                }
+
+                changeBotStatus(dispatch);
+            }
+        })
+    }
+}

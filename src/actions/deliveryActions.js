@@ -179,7 +179,7 @@ const editDeliveryFail = () => ({
     payload: true
 })
 
-export function changeDeliveryStatusAction(delivery, currentState, nextState) {  
+export function changeDeliveryStateAction(delivery, currentState, nextState) {  
     return async (dispatch) => {
         Swal.fire({
             title: 'Are you sure?',
@@ -190,7 +190,7 @@ export function changeDeliveryStatusAction(delivery, currentState, nextState) {
             cancelButtonColor: 'var(--bs-red)',
         }).then((result) => {
             if (result.isConfirmed) {
-                async function changeDeliveryStatus(dispatch) {
+                async function changeDeliveryState(dispatch) {
                     dispatch(editDelivery());
 
                     try {
@@ -202,7 +202,7 @@ export function changeDeliveryStatusAction(delivery, currentState, nextState) {
                     }
                 }
 
-                changeDeliveryStatus(dispatch);
+                changeDeliveryState(dispatch);
             }
         })
     }
