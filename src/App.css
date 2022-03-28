@@ -1,0 +1,64 @@
+.img-back {
+	height: 200px;
+	width: 100%;
+	background-image: url("./images/kiwi02.png");
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	box-shadow: 0 9px 9px -5px #888; ;
+}
+
+.title {
+	font-size: 60px;
+	font-weight: 700;
+	color: #fff;
+}
+
+.menuBtn {
+	font-size: 18px !important;
+	font-weight: 500 !important;
+	text-transform: none !important;
+	margin-bottom: 0 !important;
+	letter-spacing: 0 !important;
+	border-radius: 34px !important;
+}
+
+.menuBtn:hover,
+.newDeliveryBtn:hover {
+	background-color: #4a59d9 !important;
+	color: #fff !important;
+}
+
+.separator {
+	border-right: 1.5px solid #4a59d9;
+	height: 30px;
+	margin-left: 0.5rem;
+	margin-right: 0.5rem;
+}
+
+.newDeliveryBtn {
+	outline: none !important;
+	cursor: pointer;
+	text-decoration: none !important;
+	border-radius: 21px !important;
+}
+
+.footer {
+	color: #3f51b5;
+	padding: 0.5rem;
+	font-weight: bold;
+}
+
+.greyShadow {
+	box-shadow: 3px 3px 5px #CCC !important;
+}
+
+.swal2-actions button {
+	width: 90px;
+}
+
+@media (max-width: 600px) {
+	.title {
+		font-size: 38px;
+	}
+}
