@@ -28,6 +28,7 @@ const EditDelivery = () => {
 
         // create new delivery
         addDelivery({
+            id: 1,
             state: "pending",
             creation_date: Date.now(),
             pickup: {

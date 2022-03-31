@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
 import { Button, IconButton, makeStyles } from '@material-ui/core';
 import { Link } from "react-router-dom";
 import AddIcon from '@mui/icons-material/Add';
@@ -15,10 +8,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import moment from "moment";
 import Swal from 'sweetalert2';
 import { useNavigate } from "react-router-dom";
+import { DataGrid } from '@mui/x-data-grid';
+
+import { getDeliveriesAction, changeDeliveryStateAction, deleteDeliveryAction, getEditDeliveryAction } from '../actions/deliveryActions';
 
 // Redux 
 import { useSelector, useDispatch } from 'react-redux';
-import { getDeliveriesAction, changeDeliveryStateAction, deleteDeliveryAction, getEditDeliveryAction } from '../actions/deliveryActions';
 
 const useStyles = makeStyles({
     root: {
@@ -41,7 +36,25 @@ const useStyles = makeStyles({
 
         "& .MuiButtonBase-root.MuiIconButton-root": {
             padding: "8px"
+        },
+
+        "& .MuiDataGrid-columnHeaders": {
+            color: "white",
+            backgroundColor: "#3f51b5"
+        },
+
+        "& .MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeSmall": {
+            color: "white"
+        },
+
+        "& .MuiDataGrid-columnSeparator svg": {
+            height: "100%"
+        },
+
+        "& .MuiDataGrid-columnHeader": {
+            outline: "none !important"
         }
+
     },
 
     pendingState: {
@@ -107,6 +120,8 @@ const Deliveries = () => {
     const classes = useStyles();
     const navigate = useNavigate();
 
+    const [pageSize, setPageSize] = React.useState(5);
+
     // get the state
     const deliveries = useSelector(state => state.deliveries.deliveries);
     const error = useSelector(state => state.deliveries.error);
@@ -123,54 +138,47 @@ const Deliveries = () => {
     }, []);
 
     const columns = [
-        {
-            id: 'options',
-            label: 'Options',
-            minWidth: 120,
-            align: "center"
+        { 
+            field: 'col1', 
+            headerName: 'Options', 
+            width: 120,
+            sortable: false,
+            renderCell: (cellValues) => {
+                return (
+                    <div className={classes.root}>
+                        <IconButton onClick={() => goToDeliveryEdit(cellValues.id)}>
+                            <EditIcon color="primary" />
+                        </IconButton>
+                        <IconButton onClick={() => confirmDeleteDelivery(cellValues.id)}>
+                            <DeleteIcon style={{ color: "var(--bs-red)" }} />
+                        </IconButton>
+                    </div>
+                );
+            }
         },
-        {
-            id: '_state',
-            label: 'State',
-            minWidth: 140,
-            align: "center"
+        { 
+            field: 'col2', 
+            headerName: 'State', 
+            width: 140, 
+            renderCell: (cellValues) => {
+                return (
+                    <Button
+                        variant="contained"
+                        className={getDeliveryStateClass(cellValues.row)}
+                        size="small"
+                        onClick={() => changeDeliveryStatus(cellValues.row)}
+                    >
+                        {cellValues.row.col2}
+                    </Button>
+                );
+            }
         },
-        {
-            id: 'creation_date',
-            label: 'Creation Date',
-            minWidth: 180,
-            align: "center"
-        },
-        {
-            id: 'pickup_lat',
-            label: 'Pickup Latitude',
-            minWidth: 150,
-            align: "center"
-        },
-        {
-            id: 'pickup_lon',
-            label: 'Pickup Longitude',
-            minWidth: 150,
-            align: "center"
-        },
-        {
-            id: 'dropoff_lat',
-            label: 'Dropoff Latitude',
-            minWidth: 150,
-            align: "center"
-        },
-        {
-            id: 'dropoff_lon',
-            label: 'Dropoff Longitude',
-            minWidth: 150,
-            align: "center"
-        },
-        {
-            id: 'zone_id',
-            label: 'Zone ID',
-            minWidth: 250,
-            align: 'center'
-        },
+        { field: 'col3', headerName: 'Creation Date', width: 180 },
+        { field: 'col4', headerName: 'Pickup Latitude', width: 150 },
+        { field: 'col5', headerName: 'Pickup Longitude', width: 150 },
+        { field: 'col6', headerName: 'Dropoff Latitude', width: 150 },
+        { field: 'col7', headerName: 'Dropoff Longitude', width: 140 },
+        { field: 'col8', headerName: 'Zone ID', width: 250 },
     ];
 
     const rows = deliveries.map(delivery => {
@@ -189,48 +197,44 @@ const Deliveries = () => {
         }
 
         return {
-            state: mState,
-            creation_date: moment(delivery.creation_date).format("MM/DD/YYYY hh:mma"),
-            pickup_lat: delivery.pickup.pickup_lat,
-            pickup_lon: delivery.pickup.pickup_lon,
-            dropoff_lat: delivery.dropoff.dropoff_lat,
-            dropoff_lon: delivery.dropoff.dropoff_lon,
-            zone_id: delivery.zone_id,
             id: delivery.id,
+            col2: mState,
+            col3: moment(delivery.creation_date).format("MM/DD/YYYY hh:mma"),
+            col4: delivery.pickup.pickup_lat,
+            col5: delivery.pickup.pickup_lon,
+            col6: delivery.dropoff.dropoff_lat,
+            col7: delivery.dropoff.dropoff_lon,
+            col8: delivery.zone_id
         }
-    })
+    });
 
     const getDeliveryStateClass = (delivery) => {
 
         let stateClass;
 
-        if (delivery.state === "Pending") {
+        if (delivery.col2 === "Pending") {
             stateClass = classes.pendingState;
-        } else if (delivery.state === "Assigned") {
+        } else if (delivery.col2 === "Assigned") {
             stateClass = classes.assignedState;
-        } else if (delivery.state === "In Transit") {
+        } else if (delivery.col2 === "In Transit") {
             stateClass = classes.inTransitState;
-        } else if (delivery.state === "Delivered") {
+        } else if (delivery.col2 === "Delivered") {
             stateClass = classes.deliveredState;
         }
 
         return stateClass;
     }
 
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+    const handleCellClick = (param, event) => {
+        event.stopPropagation();
     };
 
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(+event.target.value);
-        setPage(0);
+    const handleRowClick = (param, event) => {
+        event.stopPropagation();
     };
 
     const changeDeliveryStatus = row => {
-        const currentState = row.state;
+        const currentState = row.col2;
         let nextState = "";
         let nextStateStr = "";
 
@@ -289,73 +293,17 @@ const Deliveries = () => {
 
             {loading ? <p className="text-center">Loading...</p> : null}
 
-            <Paper elevation={8} sx={{ width: '100%', overflow: 'hidden', marginTop: "2rem" }}>
-                <TableContainer sx={{ maxHeight: 440 }}>
-                    <Table stickyHeader aria-label="sticky table">
-                        <TableHead>
-                            <TableRow className={classes.root}>
-                                {columns.map((column) => (
-                                    <TableCell
-                                        key={column.id}
-                                        style={{ minWidth: column.minWidth }}
-                                    >
-                                        {column.label}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {rows
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((row) => {
-                                    return (
-                                        <TableRow hover role="checkbox" tabIndex={-1} key={row.id ? row.id : row.creation_date + row.pickup_lat + row.pickup_lon}>
-                                            <TableCell className={classes.root}>
-                                                <IconButton onClick={() => goToDeliveryEdit(row.id)}>
-                                                    <EditIcon color="primary" />
-                                                </IconButton>
-                                                <IconButton onClick={() => confirmDeleteDelivery(row.id)}>
-                                                    <DeleteIcon style={{ color: "var(--bs-red)" }} />
-                                                </IconButton>
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <Button
-                                                    variant="contained"
-                                                    className={getDeliveryStateClass(row)}
-                                                    size="small"
-                                                    onClick={() => changeDeliveryStatus(row)}
-                                                >
-                                                    {row.state}
-                                                </Button>
-                                            </TableCell>
-
-                                            {columns.map((column) => {
-                                                const value = row[column.id];
-
-                                                if (!value) return null;
-
-                                                return (
-                                                    <TableCell key={column.id} >
-                                                        {value}
-                                                    </TableCell>
-                                                );
-                                            })}
-                                        </TableRow>
-                                    );
-                                })}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-                <TablePagination
+            <Paper elevation={8} sx={{ height: "600px", width: '100%', overflow: 'hidden', marginTop: "2rem" }}>
+                <DataGrid
+                    rows={rows}
+                    columns={columns}
                     className={classes.root}
-                    rowsPerPageOptions={[10, 25, 100]}
-                    component="div"
-                    count={rows.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    pageSize={pageSize}
+                    onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+                    rowsPerPageOptions={[5, 20, 100]}
+                    pagination
+                    onCellClick={handleCellClick}
+                    onRowClick={handleRowClick}
                 />
             </Paper>
 
