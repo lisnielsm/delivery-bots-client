@@ -42,6 +42,11 @@ const EditBot = () => {
         return navigate("/bots");
     }
 
+    const handleBackClick = () => {
+        // redirect
+        return navigate("/bots");
+    }
+
     return (
         <div className="row justify-content-center my-5">
             <div className="col-md-8">
@@ -125,15 +130,27 @@ const EditBot = () => {
                                     />
                                 </div>
 
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    className="mt-4 w-100"
-                                    size="large"
-                                    color="primary"
-                                >
-                                    Create
-                                </Button>
+                                <div className="d-flex flex-column flex-sm-row w-100">
+                                    <Button
+                                        variant="contained"
+                                        className="mt-4 me-2 w-100"
+                                        size="large"
+                                        color="default"
+                                        onClick={handleBackClick}
+                                    >
+                                        Back
+                                    </Button>
+
+                                    <Button
+                                        type="submit"
+                                        variant="contained"
+                                        className="mt-4 ms-2 w-100"
+                                        size="large"
+                                        color="primary"
+                                    >
+                                        Create
+                                    </Button>
+                                </div>
 
                             </div>
 

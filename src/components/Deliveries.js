@@ -17,10 +17,6 @@ import { useSelector, useDispatch } from 'react-redux';
 
 const useStyles = makeStyles({
     root: {
-        "& .MuiTableCell-head": {
-            color: "white",
-            backgroundColor: "#3f51b5"
-        },
 
         "& .MuiTablePagination-select": {
             paddingBottom: "0.2rem !important"
@@ -120,7 +116,7 @@ const Deliveries = () => {
     const classes = useStyles();
     const navigate = useNavigate();
 
-    const [pageSize, setPageSize] = React.useState(5);
+    const [pageSize, setPageSize] = useState(5);
 
     // get the state
     const deliveries = useSelector(state => state.deliveries.deliveries);
@@ -278,7 +274,7 @@ const Deliveries = () => {
     // function that redirect in controlled way
     const goToDeliveryEdit = id => {
         //get the delivery by this id
-        const delivery = deliveries.filter(delivery => delivery.id === id)[0];
+        const delivery = deliveries.find(delivery => delivery.id === id);
 
         dispatch(getEditDeliveryAction(delivery));
         // redirect

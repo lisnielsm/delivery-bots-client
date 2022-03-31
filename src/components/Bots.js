@@ -1,17 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
 import { Button, IconButton, makeStyles } from '@material-ui/core';
 import { Link } from "react-router-dom";
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 
 import Swal from 'sweetalert2';
 import { useNavigate } from "react-router-dom";
@@ -19,13 +13,10 @@ import { useNavigate } from "react-router-dom";
 // Redux 
 import { useSelector, useDispatch } from 'react-redux';
 import { getBotsAction, changeBotStatusAction, deleteBotAction, getEditBotAction } from '../actions/botsActions';
+import { DataGrid } from '@mui/x-data-grid';
 
 const useStyles = makeStyles({
     root: {
-        "& .MuiTableCell-head": {
-            color: "white",
-            backgroundColor: "#3f51b5"
-        },
 
         "& .MuiTablePagination-select": {
             paddingBottom: "0.2rem !important"
@@ -41,6 +32,23 @@ const useStyles = makeStyles({
 
         "& .MuiButtonBase-root.MuiIconButton-root": {
             padding: "8px"
+        },
+
+        "& .MuiDataGrid-columnHeaders": {
+            color: "white",
+            backgroundColor: "#3f51b5"
+        },
+
+        "& .MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeSmall": {
+            color: "white"
+        },
+
+        "& .MuiDataGrid-columnSeparator svg": {
+            height: "100%"
+        },
+
+        "& .MuiDataGrid-columnHeader": {
+            outline: "none !important"
         }
     },
 
@@ -93,6 +101,8 @@ const Bots = () => {
     const classes = useStyles();
     const navigate = useNavigate();
 
+    const [pageSize, setPageSize] = useState(5);
+
     // get the state
     const bots = useSelector(state => state.bots.bots);
     const error = useSelector(state => state.bots.error);
@@ -110,35 +120,47 @@ const Bots = () => {
 
     const columns = [
         {
-            id: 'options',
-            label: 'Options',
-            minWidth: 120
+            field: 'col1',
+            headerName: 'Options',
+            width: 150,
+            sortable: false,
+            renderCell: (cellValues) => {
+                return (
+                    <div className={classes.root}>
+                        <IconButton onClick={() => goToBotEdit(cellValues.id)}>
+                            <EditIcon color="primary" />
+                        </IconButton>
+                        <IconButton onClick={() => confirmDeleteBot(cellValues.id)}>
+                            <DeleteIcon style={{ color: "var(--bs-red)" }} />
+                        </IconButton>
+                        <IconButton onClick={() => console.log("Entro a Assignment")}>
+                            <AssignmentIcon style={{ color: "var(--bs-orange)" }} />
+                        </IconButton>
+                    </div>
+                );
+            }
         },
         {
-            id: '_status',
-            label: 'Status',
-            minWidth: 140
+            field: 'col2',
+            headerName: 'State',
+            width: 140,
+            renderCell: (cellValues) => {
+                return (
+                    <Button
+                        variant="contained"
+                        className={getBotStatusClass(cellValues.row)}
+                        size="small"
+                        onClick={() => changeBotStatus(cellValues.row)}
+                    >
+                        {cellValues.row.col2}
+                    </Button>
+                );
+            }
         },
-        {
-            id: 'code',
-            label: 'Code',
-            minWidth: 150
-        },
-        {
-            id: 'dropoff_lat',
-            label: 'Dropoff Latitude',
-            minWidth: 150
-        },
-        {
-            id: 'dropoff_lon',
-            label: 'Dropoff Longitude',
-            minWidth: 150
-        },
-        {
-            id: 'zone_id',
-            label: 'Zone ID',
-            minWidth: 250
-        },
+        { field: 'col3', headerName: 'Code', width: 180 },
+        { field: 'col4', headerName: 'Dropoff Latitude', width: 150 },
+        { field: 'col5', headerName: 'Dropoff Longitude', width: 140 },
+        { field: 'col6', headerName: 'Zone ID', width: 250 },
     ];
 
     const rows = bots.map(bot => {
@@ -155,12 +177,12 @@ const Bots = () => {
         }
 
         return {
-            code: bot.code,
-            status: mStatus,
-            dropoff_lat: bot.location.dropoff_lat,
-            dropoff_lon: bot.location.dropoff_lon,
-            zone_id: bot.zone_id,
             id: bot.id,
+            col2: mStatus,
+            col3: bot.code,
+            col4: bot.location.dropoff_lat,
+            col5: bot.location.dropoff_lon,
+            col6: bot.zone_id,
         }
     })
 
@@ -168,31 +190,27 @@ const Bots = () => {
 
         let statusClass;
 
-        if (bot.status === "Available") {
+        if (bot.col2 === "Available") {
             statusClass = classes.availableStatus;
-        } else if (bot.status === "Busy") {
+        } else if (bot.col2 === "Busy") {
             statusClass = classes.busyStatus;
-        } else if (bot.status === "Reserved") {
+        } else if (bot.col2 === "Reserved") {
             statusClass = classes.reservedStatus;
         }
 
         return statusClass;
     }
 
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+    const handleCellClick = (param, event) => {
+        event.stopPropagation();
     };
 
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(+event.target.value);
-        setPage(0);
+    const handleRowClick = (param, event) => {
+        event.stopPropagation();
     };
 
     const changeBotStatus = row => {
-        const currentStatus = row.status;
+        const currentStatus = row.col2;
         let nextStatus = "";
         let nextStatusStr = "";
 
@@ -233,7 +251,7 @@ const Bots = () => {
     // function that redirect in controlled way
     const goToBotEdit = id => {
         //get the bot by this id
-        const bot = bots.filter(bot => bot.id === id)[0];
+        const bot = bots.find(bot => bot.id === id);
 
         dispatch(getEditBotAction(bot));
         // redirect
@@ -248,73 +266,17 @@ const Bots = () => {
 
             {loading ? <p className="text-center">Loading...</p> : null}
 
-            <Paper elevation={8} sx={{ width: '100%', overflow: 'hidden', marginTop: "2rem" }}>
-                <TableContainer sx={{ maxHeight: 440 }}>
-                    <Table stickyHeader aria-label="sticky table">
-                        <TableHead>
-                            <TableRow className={classes.root}>
-                                {columns.map((column) => (
-                                    <TableCell
-                                        key={column.id}
-                                        style={{ minWidth: column.minWidth }}
-                                    >
-                                        {column.label}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {rows
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((row) => {
-                                    return (
-                                        <TableRow hover role="checkbox" tabIndex={-1} key={row.id ? row.id : row.code}>
-                                            <TableCell className={classes.root}>
-                                                <IconButton onClick={() => goToBotEdit(row.id)}>
-                                                    <EditIcon color="primary" />
-                                                </IconButton>
-                                                <IconButton onClick={() => confirmDeleteBot(row.id)}>
-                                                    <DeleteIcon style={{ color: "var(--bs-red)" }} />
-                                                </IconButton>
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <Button
-                                                    variant="contained"
-                                                    className={getBotStatusClass(row)}
-                                                    size="small"
-                                                    onClick={() => changeBotStatus(row)}
-                                                >
-                                                    {row.status}
-                                                </Button>
-                                            </TableCell>
-
-                                            {columns.map((column) => {
-                                                const value = row[column.id];
-
-                                                if (!value) return null;
-
-                                                return (
-                                                    <TableCell key={column.id} >
-                                                        {value}
-                                                    </TableCell>
-                                                );
-                                            })}
-                                        </TableRow>
-                                    );
-                                })}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-                <TablePagination
+            <Paper elevation={8} sx={{ height: "600px", width: '100%', overflow: 'hidden', marginTop: "2rem" }}>
+                <DataGrid
+                    rows={rows}
+                    columns={columns}
                     className={classes.root}
-                    rowsPerPageOptions={[10, 25, 100]}
-                    component="div"
-                    count={rows.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    pageSize={pageSize}
+                    onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+                    rowsPerPageOptions={[5, 20, 100]}
+                    pagination
+                    onCellClick={handleCellClick}
+                    onRowClick={handleRowClick}
                 />
             </Paper>
 
