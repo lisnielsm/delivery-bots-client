@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import Paper from '@mui/material/Paper';
-import { Button, IconButton, makeStyles } from '@material-ui/core';
+import { Button, IconButton, makeStyles, Popover } from '@material-ui/core';
 import { Link } from "react-router-dom";
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import moment from "moment";
 
 import Swal from 'sweetalert2';
 import { useNavigate } from "react-router-dom";
@@ -14,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { getBotsAction, changeBotStatusAction, deleteBotAction, getEditBotAction } from '../actions/botsActions';
 import { DataGrid } from '@mui/x-data-grid';
+import { getDeliveriesAction } from '../actions/deliveryActions';
 
 const useStyles = makeStyles({
     root: {
@@ -92,7 +94,13 @@ const useStyles = makeStyles({
         "&:hover": {
             backgroundColor: "#a3001e"
         }
-    }
+    },
+
+    popoverRoot: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 });
 
 const Bots = () => {
@@ -101,22 +109,28 @@ const Bots = () => {
     const classes = useStyles();
     const navigate = useNavigate();
 
-    const [pageSize, setPageSize] = useState(5);
+    const [pageSize, setPageSize] = useState(20);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [selectionModel, setSelectionModel] = useState([]);
+
+    const open = Boolean(anchorEl);
 
     // get the state
     const bots = useSelector(state => state.bots.bots);
     const error = useSelector(state => state.bots.error);
     const loading = useSelector(state => state.bots.loading);
+    const deliveries = useSelector(state => state.deliveries.deliveries);
 
     useEffect(() => {
 
         // query the api
-        const loadBots = () => dispatch(getBotsAction());
-
-        loadBots();
+        dispatch(getBotsAction());
+        dispatch(getDeliveriesAction());
 
         // eslint-disable-next-line
     }, []);
+
+    const idDeliveries = Boolean(anchorEl) ? 'simple-popover' : undefined;
 
     const columns = [
         {
@@ -133,7 +147,9 @@ const Bots = () => {
                         <IconButton onClick={() => confirmDeleteBot(cellValues.id)}>
                             <DeleteIcon style={{ color: "var(--bs-red)" }} />
                         </IconButton>
-                        <IconButton onClick={() => console.log("Entro a Assignment")}>
+                        <IconButton onClick={(event) => {
+                            setAnchorEl(event.currentTarget);
+                        }}>
                             <AssignmentIcon style={{ color: "var(--bs-orange)" }} />
                         </IconButton>
                     </div>
@@ -183,6 +199,43 @@ const Bots = () => {
             col4: bot.location.dropoff_lat,
             col5: bot.location.dropoff_lon,
             col6: bot.zone_id,
+        }
+    })
+
+    const columnsDeliveries = [
+        { field: 'col1', headerName: 'State', width: 140 },
+        { field: 'col2', headerName: 'Creation Date', width: 180 },
+        { field: 'col3', headerName: 'Pickup Latitude', width: 150 },
+        { field: 'col4', headerName: 'Pickup Longitude', width: 150 },
+        { field: 'col5', headerName: 'Dropoff Latitude', width: 150 },
+        { field: 'col6', headerName: 'Dropoff Longitude', width: 140 },
+        { field: 'col7', headerName: 'Zone ID', width: 250 },
+    ];
+
+    const rowsDeliveries = deliveries.filter(delivery => delivery.state === "pending").map(delivery => {
+        let mState = "";
+
+        if (delivery.state === "pending") {
+            mState = "Pending"
+        } else if (delivery.state === "assigned") {
+            mState = "Assigned"
+        } else if (delivery.state === "in_transit") {
+            mState = "In Transit"
+        } else if (delivery.state === "delivered") {
+            mState = "Delivered"
+        } else {
+            mState = "Unknow"
+        }
+
+        return {
+            id: delivery.id,
+            col1: mState,
+            col2: moment(delivery.creation_date).format("MM/DD/YYYY hh:mma"),
+            col3: delivery.pickup.pickup_lat,
+            col4: delivery.pickup.pickup_lon,
+            col5: delivery.dropoff.dropoff_lat,
+            col6: delivery.dropoff.dropoff_lon,
+            col7: delivery.zone_id
         }
     })
 
@@ -279,6 +332,84 @@ const Bots = () => {
                     onRowClick={handleRowClick}
                 />
             </Paper>
+
+            <Popover
+                id={idDeliveries}
+                open={Boolean(anchorEl)}
+                anchorEl={anchorEl}
+                onClose={() => {
+                    setAnchorEl(null);
+                }}
+                anchorReference={"none"}
+                // classes={{
+                //     root: classes.popoverRoot,
+                // }}
+                className={classes.popoverRoot}
+                transformOrigin={{
+                    horizontal: "center",
+                    vertical: "top",
+                }}
+                anchorOrigin={{
+                    horizontal: "center",
+                    vertical: "bottom",
+                }}
+            >
+                <div className="popoverBot">
+                    <div className="d-flex flex-column w-100 h-100">
+
+                        <div className="mb-3" style={{ color: "#3f51b5", fontWeight: "700", fontSize: "20px" }}>Choose a delivery</div>
+
+                        <DataGrid
+                            rows={rowsDeliveries}
+                            columns={columnsDeliveries}
+                            className={classes.root}
+                            pageSize={pageSize}
+                            onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+                            rowsPerPageOptions={[5, 20, 100]}
+                            pagination
+                            checkboxSelection
+                            selectionModel={selectionModel}
+                            hideFooterSelectedRowCount
+                            onSelectionModelChange={(selection) => {
+                                if (selection.length > 1) {
+                                    const selectionSet = new Set(selectionModel);
+                                    const result = selection.filter((s) => !selectionSet.has(s));
+
+                                    setSelectionModel(result);
+                                } else {
+                                    setSelectionModel(selection);
+                                }
+                            }}
+                            onCellClick={handleCellClick}
+                            onRowClick={handleRowClick}
+                        />
+
+                        <div className="d-flex flex-column flex-sm-row w-100">
+                            <Button
+                                variant="contained"
+                                className="mt-4 me-0 me-sm-2 w-100"
+                                size="large"
+                                color="default"
+                                onClick={() => {
+                                    setAnchorEl(null);
+                                }}
+                            >
+                                Back
+                            </Button>
+
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                className="mt-4 ms--0 ms-sm-2 w-100"
+                                size="large"
+                                color="primary"
+                            >
+                                Assign
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </Popover>
 
             <div className="d-flex justify-content-end w-100">
                 <Button

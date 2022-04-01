@@ -156,7 +156,7 @@ const EditDelivery = () => {
                                 <div className="d-flex flex-column flex-sm-row w-100">
                                     <Button
                                         variant="contained"
-                                        className="mt-4 me-2 w-100"
+                                        className="mt-4 me-0 me-sm-2 w-100"
                                         size="large"
                                         color="default"
                                         onClick={handleBackClick}
@@ -167,7 +167,7 @@ const EditDelivery = () => {
                                     <Button
                                         type="submit"
                                         variant="contained"
-                                        className="mt-4 ms-2 w-100"
+                                        className="mt-4 ms-0 ms-sm-2 w-100"
                                         size="large"
                                         color="primary"
                                     >

@@ -116,7 +116,7 @@ const Deliveries = () => {
     const classes = useStyles();
     const navigate = useNavigate();
 
-    const [pageSize, setPageSize] = useState(5);
+    const [pageSize, setPageSize] = useState(20);
 
     // get the state
     const deliveries = useSelector(state => state.deliveries.deliveries);

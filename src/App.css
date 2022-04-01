@@ -48,10 +48,6 @@ body {
 }
 
 .footer {
-	/* position: fixed;
-	left: 0;
-	bottom: 0;
-	width: 100%; */
 	color: #3f51b5;
 	padding: 0.5rem;
 	font-weight: bold;
@@ -65,8 +61,37 @@ body {
 	width: 90px;
 }
 
+.popoverBot {
+	width: 900px;
+	height: 600px;
+	padding: 2rem;
+}
+
+#simple-popover > div:nth-child(1) {
+	background-color: gray !important;
+	opacity: 0.6;
+}
+
+@media (max-width: 992px) {
+	.popoverBot {
+		width: 700px;
+	}
+}
+
+@media (max-width: 768px) {
+	.popoverBot {
+		width: 500px;
+	}
+}
+
 @media (max-width: 600px) {
 	.title {
 		font-size: 38px;
+	}
+}
+
+@media (max-width: 556px) {
+	.popoverBot {
+		width: auto;
 	}
 }
