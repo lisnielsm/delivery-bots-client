@@ -11,7 +11,11 @@ import {
     GET_EDIT_BOT,
     START_BOT_EDITING,
     EDIT_BOT_SUCCESS,
-    EDIT_BOT_FAIL
+    EDIT_BOT_FAIL,
+    START_BOT_ASSIGNING,
+    GET_ASSIGN_BOT,
+    ASSIGN_BOT_SUCCESS,
+    ASSIGN_BOT_FAIL,
 } from "../types";
 
 import clientAxios from "../config/axios";
@@ -24,10 +28,10 @@ export function createNewBotAction(bot) {
 
         try {
             // insert into the API
-            await clientAxios.post('/bots', bot);
+            const response = await clientAxios.post('/bots', bot);
 
             // if all goes well update the state
-            dispatch(createBotSuccess(bot));
+            dispatch(createBotSuccess(response.data));
 
             // Alert 
             Swal.fire(
@@ -155,8 +159,8 @@ export function editBotAction(bot) {
         dispatch(editBot());
 
         try {
-            await clientAxios.patch(`/bots/${bot.id}`, bot);
-            dispatch(editBotSuccess(bot));
+            const response = await clientAxios.patch(`/bots/${bot.id}`, bot);
+            dispatch(editBotSuccess(response.data));
             
         } catch (error) {
             console.log(error);
@@ -181,29 +185,85 @@ const editBotFail = () => ({
 
 export function changeBotStatusAction(bot, currentStatus, nextStatus) {
     return async (dispatch) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            html: `Are you going to change this bot from status <b>${currentStatus}</b> to status <b>${nextStatus}</b>?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3f51b5',
-            cancelButtonColor: 'var(--bs-red)',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                async function changeBotStatus(dispatch) {
-                    dispatch(editBot());
-
-                    try {
-                        const response = await clientAxios.patch(`/bots/${bot.id}`, bot);
-                        dispatch(editBotSuccess(response.data));
-                    } catch (error) {
-                        console.log(error);
-                        dispatch(editBotFail());
+        if(currentStatus === "Available") {
+            Swal.fire(
+                'The bot is in Available status',
+                'You need to assign a delivery to pass it to Busy status',
+                'warning'
+            );
+        } else {
+            Swal.fire({
+                title: 'Are you sure?',
+                html: `Are you going to change this bot from status <b>${currentStatus}</b> to status <b>${nextStatus}</b>?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3f51b5',
+                cancelButtonColor: 'var(--bs-red)',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    async function changeBotStatus(dispatch) {
+                        dispatch(editBot());
+    
+                        try {
+                            const response = await clientAxios.patch(`/bots/${bot.id}`, bot);
+                            dispatch(editBotSuccess(response.data));
+                        } catch (error) {
+                            console.log(error);
+                            dispatch(editBotFail());
+                        }
                     }
+    
+                    changeBotStatus(dispatch);
                 }
-
-                changeBotStatus(dispatch);
-            }
-        })
+            })
+        }
     }
 }
+
+// get assigning bot
+export function getAssignBotAction(bot) {
+    return (dispatch) => {
+        dispatch(getAssignBot(bot));
+    }
+}
+
+const getAssignBot = bot => ({
+    type: GET_ASSIGN_BOT,
+    payload: bot
+});
+
+export function assignBotAction(bot) {
+    return async (dispatch) => {
+        dispatch(startAssignBot());
+
+        try {
+            const response = await clientAxios.post(`/bots/assign/${bot.id}`, bot);
+            dispatch(assignBotSuccess(response.data));
+
+            // Alert 
+            Swal.fire(
+                'Correct',
+                'The delivery was assigned correctly',
+                'success'
+            );
+
+        } catch (error) {
+            console.log(error);
+            dispatch(assignBotFail());
+        }
+    }
+}
+
+const startAssignBot = () => ({
+    type: START_BOT_ASSIGNING
+})
+
+const assignBotSuccess = bot => ({
+    type: ASSIGN_BOT_SUCCESS,
+    payload: bot
+})
+
+const assignBotFail = () => ({
+    type: ASSIGN_BOT_FAIL,
+    payload: true
+})

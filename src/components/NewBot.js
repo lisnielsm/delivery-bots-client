@@ -8,9 +8,6 @@ import { Button } from '@material-ui/core';
 
 const EditBot = () => {
     const [code, setCode] = useState("");
-    const [dropofflatitude, setDropoffLatitude] = useState("");
-    const [dropofflongitude, setDropoffLongitude] = useState("");
-    const [zoneid, setZoneId] = useState("");
 
     const navigate = useNavigate();
 
@@ -26,15 +23,7 @@ const EditBot = () => {
         e.preventDefault();
 
         // create new bot
-        addBot({
-            code: code,
-            status: "available",
-            location: {
-                dropoff_lat: Number(dropofflatitude),
-                dropoff_lon: Number(dropofflongitude),
-            },
-            zone_id: zoneid
-        });
+        addBot({ code: code });
 
         dispatch(getBotsAction());
 
@@ -70,6 +59,7 @@ const EditBot = () => {
                                         label="Code"
                                         variant="outlined"
                                         margin="normal"
+                                        autoFocus
                                         value={code}
                                         onChange={e => setCode(e.target.value)}
                                         fullWidth
@@ -77,56 +67,6 @@ const EditBot = () => {
                                         validators={['required']}
                                         errorMessages={["Code is required"]}
                                         className="mb2"
-                                    />
-                                </div>
-
-                                <div className="text-center">
-                                    <TextValidator
-                                        name="dropofflatitude"
-                                        placeholder="Dropoff latitude"
-                                        label="Dropoff latitude"
-                                        variant="outlined"
-                                        margin="normal"
-                                        value={dropofflatitude}
-                                        onChange={e => setDropoffLatitude(e.target.value)}
-                                        fullWidth
-                                        required={true}
-                                        validators={['required', "matchRegexp:^(\\+|-)?(?:90(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{1,6})?))$"]}
-                                        errorMessages={["Pickup latitude is required", "Please enter a correct latitude"]}
-                                        className="mb2"
-                                    />
-                                </div>
-
-                                <div className="text-center">
-                                    <TextValidator
-                                        name="dropofflongitude"
-                                        placeholder="Dropoff longitude"
-                                        label="Dropoff longitude"
-                                        variant="outlined"
-                                        margin="normal"
-                                        value={dropofflongitude}
-                                        onChange={e => setDropoffLongitude(e.target.value)}
-                                        fullWidth
-                                        required={true}
-                                        validators={['required', "matchRegexp:^(\\+|-)?(?:180(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\\.[0-9]{1,6})?))$"]}
-                                        errorMessages={["Pickup longitude is required", "Please enter a correct longitude"]}
-                                        className="mb2"
-                                    />
-                                </div>
-
-                                <div className="text-center">
-                                    <TextValidator
-                                        name="zoneid"
-                                        placeholder="Zone ID"
-                                        label="Zone ID"
-                                        variant="outlined"
-                                        margin="normal"
-                                        value={zoneid}
-                                        onChange={e => setZoneId(e.target.value)}
-                                        fullWidth
-                                        required={true}
-                                        validators={['required']}
-                                        errorMessages={["Zone ID is required"]}
                                     />
                                 </div>
 

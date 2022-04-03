@@ -10,7 +10,10 @@ import {
     DELETE_BOT_FAIL,
     GET_EDIT_BOT,
     EDIT_BOT_SUCCESS,
-    EDIT_BOT_FAIL
+    EDIT_BOT_FAIL,
+    GET_ASSIGN_BOT,
+    ASSIGN_BOT_SUCCESS,
+    ASSIGN_BOT_FAIL,
 } from "../types";
 
 
@@ -19,7 +22,8 @@ const initialState = {
     error: null,
     loading: false,
     deletebot: null,
-    editbot: null
+    editbot: null,
+    assignbot: null,
 }
 
 export default function botReducer(state = initialState, action) {
@@ -42,6 +46,7 @@ export default function botReducer(state = initialState, action) {
         case DOWNLOAD_BOTS_FAIL:
         case DELETE_BOT_FAIL:
         case EDIT_BOT_FAIL:
+        case ASSIGN_BOT_FAIL:
             return {
                 ...state,
                 loading: false,
@@ -74,6 +79,17 @@ export default function botReducer(state = initialState, action) {
             return {
                 ...state,
                 editbot: null,
+                bots: state.bots.map(bot => bot.id === action.payload.id ? bot = action.payload : bot)
+            }
+        case GET_ASSIGN_BOT:
+            return {
+                ...state,
+                assignbot: action.payload
+            }
+        case ASSIGN_BOT_SUCCESS:
+            return {
+                ...state,
+                assignbot: null,
                 bots: state.bots.map(bot => bot.id === action.payload.id ? bot = action.payload : bot)
             }
 

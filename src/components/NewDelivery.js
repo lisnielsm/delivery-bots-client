@@ -7,6 +7,8 @@ import { createNewDeliveryAction, getDeliveriesAction } from '../actions/deliver
 import { Button } from '@material-ui/core';
 
 const EditDelivery = () => {
+
+    const [code, setCode] = useState("");
     const [pickuplatitude, setPickupLatitude] = useState("");
     const [pickuplongitude, setPickupLongitude] = useState("");
     const [dropofflatitude, setDropoffLatitude] = useState("");
@@ -29,6 +31,7 @@ const EditDelivery = () => {
         // create new delivery
         addDelivery({
             id: 1,
+            code: code,
             state: "pending",
             creation_date: Date.now(),
             pickup: {
@@ -69,6 +72,23 @@ const EditDelivery = () => {
                             noValidate={true}
                         >
                             <div className="login-form mt1 col-xs-12">
+                                <div className="text-center">
+                                    <TextValidator
+                                        name="code"
+                                        placeholder="Code"
+                                        label="Code"
+                                        variant="outlined"
+                                        margin="normal"
+                                        value={code}
+                                        onChange={e => setCode(e.target.value)}
+                                        fullWidth
+                                        required={true}
+                                        validators={['required']}
+                                        errorMessages={["Code is required"]}
+                                        className="mb2"
+                                    />
+                                </div>
+                                
                                 <div className="text-center">
                                     <TextValidator
                                         name="pickuplatitude"

@@ -13,13 +13,7 @@ const EditBot = () => {
 
     const [bot, setBot] = useState({
         id: "",
-        code: "",
-        status: "",
-        location: {
-            dropoff_lat: "",
-            dropoff_lon: "",
-        },
-        zone_id: ""
+        code: ""
     });
 
     // bot to edit
@@ -29,13 +23,7 @@ const EditBot = () => {
     useEffect(() => {
         setBot({
             id: editbot.id,
-            code: editbot.code,
-            status: editbot.status,
-            location: {
-                dropoff_lat: editbot.location.dropoff_lat.toString(),
-                dropoff_lon: editbot.location.dropoff_lon.toString(),
-            },
-            zone_id: editbot.zone_id
+            code: editbot.code
         });
     }, [editbot])
 
@@ -52,6 +40,11 @@ const EditBot = () => {
 
         dispatch(editBotAction(bot));
 
+        // redirect
+        return navigate("/bots");
+    }
+
+    const handleBackClick = () => {
         // redirect
         return navigate("/bots");
     }
@@ -89,65 +82,27 @@ const EditBot = () => {
                                     />
                                 </div>
 
-                                <div className="text-center">
-                                    <TextValidator
-                                        name="dropofflatitude"
-                                        placeholder="Dropoff latitude"
-                                        label="Dropoff latitude"
-                                        variant="outlined"
-                                        margin="normal"
-                                        value={bot ? bot.location.dropoff_lat : ""}
-                                        onChange={onChangeForm}
-                                        fullWidth
-                                        required={true}
-                                        validators={['required', "matchRegexp:^(\\+|-)?(?:90(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{1,6})?))$"]}
-                                        errorMessages={["Pickup latitude is required", "Please enter a correct latitude"]}
-                                        className="mb2"
-                                    />
-                                </div>
+                                <div className="d-flex flex-column flex-sm-row w-100">
+                                    <Button
+                                        variant="contained"
+                                        className="mt-4 me-0 me-sm-2 w-100"
+                                        size="large"
+                                        color="default"
+                                        onClick={handleBackClick}
+                                    >
+                                        Back
+                                    </Button>
 
-                                <div className="text-center">
-                                    <TextValidator
-                                        name="dropofflongitude"
-                                        placeholder="Dropoff longitude"
-                                        label="Dropoff longitude"
-                                        variant="outlined"
-                                        margin="normal"
-                                        value={bot ? bot.location.dropoff_lon : ""}
-                                        onChange={onChangeForm}
-                                        fullWidth
-                                        required={true}
-                                        validators={['required', "matchRegexp:^(\\+|-)?(?:180(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\\.[0-9]{1,6})?))$"]}
-                                        errorMessages={["Pickup longitude is required", "Please enter a correct longitude"]}
-                                        className="mb2"
-                                    />
+                                    <Button
+                                        type="submit"
+                                        variant="contained"
+                                        className="mt-4 ms-0 ms-sm-2 w-100"
+                                        size="large"
+                                        color="primary"
+                                    >
+                                        Edit
+                                    </Button>
                                 </div>
-
-                                <div className="text-center">
-                                    <TextValidator
-                                        name="zoneid"
-                                        placeholder="Zone ID"
-                                        label="Zone ID"
-                                        variant="outlined"
-                                        margin="normal"
-                                        value={bot ? bot.zone_id : ""}
-                                        onChange={onChangeForm}
-                                        fullWidth
-                                        required={true}
-                                        validators={['required']}
-                                        errorMessages={["Zone ID is required"]}
-                                    />
-                                </div>
-
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    className="mt-4 w-100"
-                                    size="large"
-                                    color="primary"
-                                >
-                                    Edit
-                                </Button>
 
                             </div>
 

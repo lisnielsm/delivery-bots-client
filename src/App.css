@@ -72,6 +72,10 @@ body {
 	opacity: 0.6;
 }
 
+.deliveriesList .MuiDataGrid-columnHeader.MuiDataGrid-columnHeader--alignCenter.MuiDataGrid-columnHeaderCheckbox[aria-colindex="1"] span.MuiCheckbox-root{
+	visibility: hidden !important;
+}
+
 @media (max-width: 992px) {
 	.popoverBot {
 		width: 700px;

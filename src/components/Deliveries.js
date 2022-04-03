@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Paper from '@mui/material/Paper';
-import { Button, IconButton, makeStyles } from '@material-ui/core';
+import { Button, IconButton, makeStyles, Tooltip } from '@material-ui/core';
 import { Link } from "react-router-dom";
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -134,28 +134,37 @@ const Deliveries = () => {
     }, []);
 
     const columns = [
-        { 
-            field: 'col1', 
-            headerName: 'Options', 
+        {
+            field: 'col1',
+            headerName: 'Options',
             width: 120,
             sortable: false,
             renderCell: (cellValues) => {
                 return (
                     <div className={classes.root}>
-                        <IconButton onClick={() => goToDeliveryEdit(cellValues.id)}>
-                            <EditIcon color="primary" />
-                        </IconButton>
-                        <IconButton onClick={() => confirmDeleteDelivery(cellValues.id)}>
-                            <DeleteIcon style={{ color: "var(--bs-red)" }} />
-                        </IconButton>
+                        <Tooltip title="Edit Delivery" placement="bottom">
+                            <div className="d-inline">
+                                <IconButton onClick={() => goToDeliveryEdit(cellValues.id)}>
+                                    <EditIcon color="primary" />
+                                </IconButton>
+                            </div>
+                        </Tooltip>
+
+                        <Tooltip title="Delete Delivery" placement="bottom">
+                            <div className="d-inline">
+                                <IconButton onClick={() => confirmDeleteDelivery(cellValues.id)}>
+                                    <DeleteIcon style={{ color: "var(--bs-red)" }} />
+                                </IconButton>
+                            </div>
+                        </Tooltip>
                     </div>
                 );
             }
         },
-        { 
-            field: 'col2', 
-            headerName: 'State', 
-            width: 140, 
+        {
+            field: 'col2',
+            headerName: 'State',
+            width: 140,
             renderCell: (cellValues) => {
                 return (
                     <Button
@@ -169,12 +178,14 @@ const Deliveries = () => {
                 );
             }
         },
-        { field: 'col3', headerName: 'Creation Date', width: 180 },
-        { field: 'col4', headerName: 'Pickup Latitude', width: 150 },
-        { field: 'col5', headerName: 'Pickup Longitude', width: 150 },
-        { field: 'col6', headerName: 'Dropoff Latitude', width: 150 },
-        { field: 'col7', headerName: 'Dropoff Longitude', width: 140 },
-        { field: 'col8', headerName: 'Zone ID', width: 250 },
+        { field: 'col3', headerName: 'Code', width: 180 },
+        { field: 'col4', headerName: 'Creation Date', width: 180 },
+        { field: 'col5', headerName: 'Pickup Latitude', width: 150 },
+        { field: 'col6', headerName: 'Pickup Longitude', width: 150 },
+        { field: 'col7', headerName: 'Dropoff Latitude', width: 150 },
+        { field: 'col8', headerName: 'Dropoff Longitude', width: 140 },
+        { field: 'col9', headerName: 'Zone ID', width: 200 },
+        { field: 'col10', headerName: 'Bot Code', width: 180 },
     ];
 
     const rows = deliveries.map(delivery => {
@@ -195,12 +206,14 @@ const Deliveries = () => {
         return {
             id: delivery.id,
             col2: mState,
-            col3: moment(delivery.creation_date).format("MM/DD/YYYY hh:mma"),
-            col4: delivery.pickup.pickup_lat,
-            col5: delivery.pickup.pickup_lon,
-            col6: delivery.dropoff.dropoff_lat,
-            col7: delivery.dropoff.dropoff_lon,
-            col8: delivery.zone_id
+            col3: delivery.code,
+            col4: moment(delivery.creation_date).format("MM/DD/YYYY hh:mma"),
+            col5: delivery.pickup.pickup_lat,
+            col6: delivery.pickup.pickup_lon,
+            col7: delivery.dropoff.dropoff_lat,
+            col8: delivery.dropoff.dropoff_lon,
+            col9: delivery.zone_id,
+            col10: delivery.bot_code
         }
     });
 
@@ -289,7 +302,7 @@ const Deliveries = () => {
 
             {loading ? <p className="text-center">Loading...</p> : null}
 
-            <Paper elevation={8} sx={{ height: "600px", width: '100%', overflow: 'hidden', marginTop: "2rem" }}>
+            <Paper elevation={8} sx={{ height: "500px", width: '100%', overflow: 'hidden', marginTop: "2rem" }}>
                 <DataGrid
                     rows={rows}
                     columns={columns}

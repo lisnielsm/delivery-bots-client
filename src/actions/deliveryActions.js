@@ -24,10 +24,10 @@ export function createNewDeliveryAction(delivery) {
 
         try {
             // insert into the API
-            await clientAxios.post('/deliveries', delivery);
+            const response = await clientAxios.post('/deliveries', delivery);
 
             // if all goes well update the state
-            dispatch(createDeliverySuccess(delivery));
+            dispatch(createDeliverySuccess(response.data));
 
             // Alert 
             Swal.fire(

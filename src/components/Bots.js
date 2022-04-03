@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Paper from '@mui/material/Paper';
-import { Button, IconButton, makeStyles, Popover } from '@material-ui/core';
+import { Button, IconButton, makeStyles, Popover, Tooltip } from '@material-ui/core';
 import { Link } from "react-router-dom";
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -13,9 +13,10 @@ import { useNavigate } from "react-router-dom";
 
 // Redux 
 import { useSelector, useDispatch } from 'react-redux';
-import { getBotsAction, changeBotStatusAction, deleteBotAction, getEditBotAction } from '../actions/botsActions';
+import { getBotsAction, changeBotStatusAction, deleteBotAction, getEditBotAction, getAssignBotAction, assignBotAction } from '../actions/botsActions';
 import { DataGrid } from '@mui/x-data-grid';
 import { getDeliveriesAction } from '../actions/deliveryActions';
+import { Stack } from '@mui/material';
 
 const useStyles = makeStyles({
     root: {
@@ -109,26 +110,30 @@ const Bots = () => {
     const classes = useStyles();
     const navigate = useNavigate();
 
-    const [pageSize, setPageSize] = useState(20);
+    const [pageSize, setPageSize] = useState(25);
     const [anchorEl, setAnchorEl] = useState(null);
     const [selectionModel, setSelectionModel] = useState([]);
-
-    const open = Boolean(anchorEl);
+    const [reload, setReload] = useState(true);
 
     // get the state
     const bots = useSelector(state => state.bots.bots);
     const error = useSelector(state => state.bots.error);
     const loading = useSelector(state => state.bots.loading);
     const deliveries = useSelector(state => state.deliveries.deliveries);
+    const assignbot = useSelector(state => state.bots.assignbot);
 
     useEffect(() => {
 
-        // query the api
-        dispatch(getBotsAction());
-        dispatch(getDeliveriesAction());
+        const getBotsAndDeliveries = () => {
+            // query the api
+            dispatch(getBotsAction());
+            dispatch(getDeliveriesAction());
+        }
+
+        getBotsAndDeliveries();
 
         // eslint-disable-next-line
-    }, []);
+    }, [reload]);
 
     const idDeliveries = Boolean(anchorEl) ? 'simple-popover' : undefined;
 
@@ -141,17 +146,33 @@ const Bots = () => {
             renderCell: (cellValues) => {
                 return (
                     <div className={classes.root}>
-                        <IconButton onClick={() => goToBotEdit(cellValues.id)}>
-                            <EditIcon color="primary" />
-                        </IconButton>
-                        <IconButton onClick={() => confirmDeleteBot(cellValues.id)}>
-                            <DeleteIcon style={{ color: "var(--bs-red)" }} />
-                        </IconButton>
-                        <IconButton onClick={(event) => {
-                            setAnchorEl(event.currentTarget);
-                        }}>
-                            <AssignmentIcon style={{ color: "var(--bs-orange)" }} />
-                        </IconButton>
+                        <Tooltip title="Edit Bot" placement="bottom">
+                            <div className="d-inline">
+                                <IconButton onClick={() => goToBotEdit(cellValues.id)}>
+                                    <EditIcon color="primary" />
+                                </IconButton>
+                            </div>
+                        </Tooltip>
+
+                        <Tooltip title="Delete Bot" placement="bottom">
+                            <div className="d-inline">
+                                <IconButton onClick={() => confirmDeleteBot(cellValues.id)}>
+                                    <DeleteIcon style={{ color: "var(--bs-red)" }} />
+                                </IconButton>
+                            </div>
+                        </Tooltip>
+
+                        <Tooltip title="Assign Bot" placement="bottom">
+                            <div className="d-inline">
+                                <IconButton onClick={(event) => {
+                                    if (assignCurrentBot(cellValues.row)) {
+                                        setAnchorEl(event.currentTarget);
+                                    }
+                                }}>
+                                    <AssignmentIcon style={{ color: "var(--bs-orange)" }} />
+                                </IconButton>
+                            </div>
+                        </Tooltip>
                     </div>
                 );
             }
@@ -176,7 +197,8 @@ const Bots = () => {
         { field: 'col3', headerName: 'Code', width: 180 },
         { field: 'col4', headerName: 'Dropoff Latitude', width: 150 },
         { field: 'col5', headerName: 'Dropoff Longitude', width: 140 },
-        { field: 'col6', headerName: 'Zone ID', width: 250 },
+        { field: 'col6', headerName: 'Zone ID', width: 200 },
+        { field: 'col7', headerName: 'Delivery Code', width: 180 },
     ];
 
     const rows = bots.map(bot => {
@@ -196,9 +218,10 @@ const Bots = () => {
             id: bot.id,
             col2: mStatus,
             col3: bot.code,
-            col4: bot.location.dropoff_lat,
-            col5: bot.location.dropoff_lon,
-            col6: bot.zone_id,
+            col4: bot.location.dropoff_lat ? bot.location.dropoff_lat : "-",
+            col5: bot.location.dropoff_lon ? bot.location.dropoff_lon : "-",
+            col6: bot.zone_id ? bot.zone_id : "-",
+            col7: bot.delivery_code ? bot.delivery_code : "-"
         }
     })
 
@@ -212,32 +235,56 @@ const Bots = () => {
         { field: 'col7', headerName: 'Zone ID', width: 250 },
     ];
 
-    const rowsDeliveries = deliveries.filter(delivery => delivery.state === "pending").map(delivery => {
-        let mState = "";
+    const getDeliveriesRows = () => {
+        return deliveries.filter(delivery => delivery.state === "pending").map(delivery => {
+            let mState = "";
 
-        if (delivery.state === "pending") {
-            mState = "Pending"
-        } else if (delivery.state === "assigned") {
-            mState = "Assigned"
-        } else if (delivery.state === "in_transit") {
-            mState = "In Transit"
-        } else if (delivery.state === "delivered") {
-            mState = "Delivered"
-        } else {
-            mState = "Unknow"
+            if (delivery.state === "pending") {
+                mState = "Pending"
+            } else if (delivery.state === "assigned") {
+                mState = "Assigned"
+            } else if (delivery.state === "in_transit") {
+                mState = "In Transit"
+            } else if (delivery.state === "delivered") {
+                mState = "Delivered"
+            } else {
+                mState = "Unknow"
+            }
+
+            return {
+                id: delivery.id,
+                col1: mState,
+                col2: moment(delivery.creation_date).format("MM/DD/YYYY hh:mma"),
+                col3: delivery.pickup.pickup_lat,
+                col4: delivery.pickup.pickup_lon,
+                col5: delivery.dropoff.dropoff_lat,
+                col6: delivery.dropoff.dropoff_lon,
+                col7: delivery.zone_id,
+            }
+        })
+    }
+
+    const rowDeliveries = getDeliveriesRows();
+
+    const assignCurrentBot = row => {
+
+        if (row.col2 !== "Available") {
+            // Alert 
+            Swal.fire(
+                'Bot is in ' + row.col2 + " status",
+                'The bot must be in the Available state to assign a delivery to it',
+                'warning'
+            );
+
+            return false;
         }
 
-        return {
-            id: delivery.id,
-            col1: mState,
-            col2: moment(delivery.creation_date).format("MM/DD/YYYY hh:mma"),
-            col3: delivery.pickup.pickup_lat,
-            col4: delivery.pickup.pickup_lon,
-            col5: delivery.dropoff.dropoff_lat,
-            col6: delivery.dropoff.dropoff_lon,
-            col7: delivery.zone_id
-        }
-    })
+        const cBot = bots.find(currentBot => currentBot.code === row.col3);
+
+        dispatch(getAssignBotAction(cBot));
+
+        return true;
+    }
 
     const getBotStatusClass = (bot) => {
 
@@ -263,6 +310,17 @@ const Bots = () => {
     };
 
     const changeBotStatus = row => {
+
+        let bot = {
+            id: row.id,
+            location: {
+                dropoff_lat: "",
+                dropoff_lon: ""
+            },
+            zone_id: "",
+            delivery_code: ""
+        }
+
         const currentStatus = row.col2;
         let nextStatus = "";
         let nextStatusStr = "";
@@ -281,10 +339,12 @@ const Bots = () => {
             nextStatusStr = "Unknown";
         }
 
-        dispatch(changeBotStatusAction({ id: row.id, status: nextStatus }, currentStatus, nextStatusStr))
+        bot.status = nextStatus;
+
+        dispatch(changeBotStatusAction(bot, currentStatus, nextStatusStr))
     }
 
-    // confirm if user want  to delete teh bot
+    // confirm if user want to delete the bot
     const confirmDeleteBot = id => {
 
         Swal.fire({
@@ -311,6 +371,24 @@ const Bots = () => {
         return navigate(`/bots/edit/${bot.id}`);
     }
 
+    const sendDeliveryToBot = () => {
+        const bot = assignbot;
+
+        const deliveryId = selectionModel[0];
+
+        const selectedDelivery = deliveries.find(delivery => delivery.id === deliveryId);
+
+        bot.delivery_code = selectedDelivery.code;
+
+        dispatch(assignBotAction(bot));
+
+        setTimeout(function () {
+            setReload(!reload);
+        }, 300);
+
+        setAnchorEl(null);
+    }
+
     return (
         <>
             <h2 className="text-center mt-4" style={{ color: "#3f51b5", fontWeight: "700" }}>Bots List</h2>
@@ -319,15 +397,27 @@ const Bots = () => {
 
             {loading ? <p className="text-center">Loading...</p> : null}
 
-            <Paper elevation={8} sx={{ height: "600px", width: '100%', overflow: 'hidden', marginTop: "2rem" }}>
+            <Paper elevation={8} sx={{ height: "500px", width: '100%', overflow: 'hidden', marginTop: "2rem" }}>
                 <DataGrid
                     rows={rows}
                     columns={columns}
                     className={classes.root}
                     pageSize={pageSize}
                     onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
-                    rowsPerPageOptions={[5, 20, 100]}
+                    rowsPerPageOptions={[10, 25, 50, 100]}
                     pagination
+                    components={{
+                        NoRowsOverlay: () => (
+                            <Stack height="100%" alignItems="center" justifyContent="center">
+                                No bots, create a new one
+                            </Stack>
+                        ),
+                        NoResultsOverlay: () => (
+                            <Stack height="100%" alignItems="center" justifyContent="center">
+                                Local filter returns no result
+                            </Stack>
+                        )
+                    }}
                     onCellClick={handleCellClick}
                     onRowClick={handleRowClick}
                 />
@@ -341,9 +431,6 @@ const Bots = () => {
                     setAnchorEl(null);
                 }}
                 anchorReference={"none"}
-                // classes={{
-                //     root: classes.popoverRoot,
-                // }}
                 className={classes.popoverRoot}
                 transformOrigin={{
                     horizontal: "center",
@@ -360,12 +447,13 @@ const Bots = () => {
                         <div className="mb-3" style={{ color: "#3f51b5", fontWeight: "700", fontSize: "20px" }}>Choose a delivery</div>
 
                         <DataGrid
-                            rows={rowsDeliveries}
+                            id="deliveriesList"
+                            rows={rowDeliveries}
                             columns={columnsDeliveries}
-                            className={classes.root}
+                            className={classes.root + " deliveriesList"}
                             pageSize={pageSize}
                             onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
-                            rowsPerPageOptions={[5, 20, 100]}
+                            rowsPerPageOptions={[10, 25, 50, 100]}
                             pagination
                             checkboxSelection
                             selectionModel={selectionModel}
@@ -403,6 +491,7 @@ const Bots = () => {
                                 className="mt-4 ms--0 ms-sm-2 w-100"
                                 size="large"
                                 color="primary"
+                                onClick={sendDeliveryToBot}
                             >
                                 Assign
                             </Button>
