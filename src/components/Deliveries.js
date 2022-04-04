@@ -213,7 +213,7 @@ const Deliveries = () => {
             col7: delivery.dropoff.dropoff_lat,
             col8: delivery.dropoff.dropoff_lon,
             col9: delivery.zone_id,
-            col10: delivery.bot_code
+            col10: delivery.bot_code ? delivery.bot_code : "-"
         }
     });
 

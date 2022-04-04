@@ -14,6 +14,7 @@ const EditDelivery = () => {
     const [delivery, setDelivery] = useState({
         id: "",
         state: "",
+        code: "",
         creation_date: "",
         pickup: {
             pickup_lat: "",
@@ -34,6 +35,7 @@ const EditDelivery = () => {
         setDelivery({
             id: editdelivery.id,
             state: editdelivery.state,
+            code: editdelivery.code,
             creation_date: editdelivery.creation_date,
             pickup: {
                 pickup_lat: editdelivery.pickup.pickup_lat.toString(),
@@ -64,6 +66,11 @@ const EditDelivery = () => {
         return navigate("/");
     }
 
+    const handleBackClick = () => {
+        // redirect
+        return navigate("/bots");
+    }
+
     return ( 
         <div className="row justify-content-center my-5">
             <div className="col-md-8">
@@ -80,6 +87,23 @@ const EditDelivery = () => {
                             noValidate={true}
                         >
                             <div className="login-form mt1 col-xs-12">
+                                <div className="text-center">
+                                    <TextValidator
+                                        name="code"
+                                        placeholder="Code"
+                                        label="Code"
+                                        variant="outlined"
+                                        margin="normal"
+                                        value={delivery ? delivery.code : ""}
+                                        onChange={onChangeForm}
+                                        fullWidth
+                                        required={true}
+                                        validators={['required']}
+                                        errorMessages={["Code is required"]}
+                                        className="mb2"
+                                    />
+                                </div>
+                                
                                 <div className="text-center">
                                     <TextValidator
                                         name="pickuplatitude"
@@ -164,15 +188,27 @@ const EditDelivery = () => {
                                     />
                                 </div>
 
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    className="mt-4 w-100"
-                                    size="large"
-                                    color="primary"
-                                >
-                                    Edit
-                                </Button>
+                                <div className="d-flex flex-column flex-sm-row w-100">
+                                    <Button
+                                        variant="contained"
+                                        className="mt-4 me-0 me-sm-2 w-100"
+                                        size="large"
+                                        color="default"
+                                        onClick={handleBackClick}
+                                    >
+                                        Back
+                                    </Button>
+
+                                    <Button
+                                        type="submit"
+                                        variant="contained"
+                                        className="mt-4 ms-0 ms-sm-2 w-100"
+                                        size="large"
+                                        color="primary"
+                                    >
+                                        Edit
+                                    </Button>
+                                </div>
 
                             </div>
 

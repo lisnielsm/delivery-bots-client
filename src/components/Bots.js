@@ -227,12 +227,13 @@ const Bots = () => {
 
     const columnsDeliveries = [
         { field: 'col1', headerName: 'State', width: 140 },
-        { field: 'col2', headerName: 'Creation Date', width: 180 },
-        { field: 'col3', headerName: 'Pickup Latitude', width: 150 },
-        { field: 'col4', headerName: 'Pickup Longitude', width: 150 },
-        { field: 'col5', headerName: 'Dropoff Latitude', width: 150 },
-        { field: 'col6', headerName: 'Dropoff Longitude', width: 140 },
-        { field: 'col7', headerName: 'Zone ID', width: 250 },
+        { field: 'col2', headerName: 'Code', width: 180 },
+        { field: 'col3', headerName: 'Creation Date', width: 180 },
+        { field: 'col4', headerName: 'Pickup Latitude', width: 150 },
+        { field: 'col5', headerName: 'Pickup Longitude', width: 150 },
+        { field: 'col6', headerName: 'Dropoff Latitude', width: 150 },
+        { field: 'col7', headerName: 'Dropoff Longitude', width: 140 },
+        { field: 'col8', headerName: 'Zone ID', width: 250 },
     ];
 
     const getDeliveriesRows = () => {
@@ -254,12 +255,13 @@ const Bots = () => {
             return {
                 id: delivery.id,
                 col1: mState,
-                col2: moment(delivery.creation_date).format("MM/DD/YYYY hh:mma"),
-                col3: delivery.pickup.pickup_lat,
-                col4: delivery.pickup.pickup_lon,
-                col5: delivery.dropoff.dropoff_lat,
-                col6: delivery.dropoff.dropoff_lon,
-                col7: delivery.zone_id,
+                col2: delivery.code,
+                col3: moment(delivery.creation_date).format("MM/DD/YYYY hh:mma"),
+                col4: delivery.pickup.pickup_lat,
+                col5: delivery.pickup.pickup_lon,
+                col6: delivery.dropoff.dropoff_lat,
+                col7: delivery.dropoff.dropoff_lon,
+                col8: delivery.zone_id,
             }
         })
     }
